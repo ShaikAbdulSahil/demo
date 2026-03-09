@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java & SQL Quick Brush-Up</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --card: #161e2e;
+    --border: #1f2d45;
+    --java: #f59e0b;
+    --sql: #22d3ee;
+    --green: #34d399;
+    --red: #f87171;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent: #6366f1;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0c1a2e 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+
+  .header-left h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--java), var(--sql));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .header-left p {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .timer {
+    background: #1a0505;
+    border: 1px solid #7f1d1d;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: 2px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 40px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .tab {
+    padding: 14px 24px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active-java { color: var(--java); border-bottom-color: var(--java); }
+  .tab.active-sql { color: var(--sql); border-bottom-color: var(--sql); }
+
+  .content { padding: 32px 40px; max-width: 1400px; margin: 0 auto; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: -0.3px;
+  }
+
+  .badge-java {
+    background: rgba(245,158,11,0.15);
+    color: var(--java);
+    border: 1px solid rgba(245,158,11,0.3);
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .badge-sql {
+    background: rgba(34,211,238,0.15);
+    color: var(--sql);
+    border: 1px solid rgba(34,211,238,0.3);
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: #2d3f5c; }
+
+  .card-header {
+    padding: 12px 16px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-header.java { background: rgba(245,158,11,0.08); color: var(--java); border-bottom: 1px solid rgba(245,158,11,0.15); }
+  .card-header.sql { background: rgba(34,211,238,0.08); color: var(--sql); border-bottom: 1px solid rgba(34,211,238,0.15); }
+  .card-header.green { background: rgba(52,211,153,0.08); color: var(--green); border-bottom: 1px solid rgba(52,211,153,0.15); }
+
+  pre {
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    color: #cbd5e1;
+  }
+
+  .kw { color: #a78bfa; font-weight: 600; }
+  .type { color: #60a5fa; }
+  .str { color: #34d399; }
+  .num { color: #fb923c; }
+  .cm { color: #475569; font-style: italic; }
+  .fn { color: #f472b6; }
+  .sql-kw { color: #22d3ee; font-weight: 600; }
+  .sql-fn { color: #a78bfa; }
+  .sql-val { color: #34d399; }
+
+  .tip {
+    background: rgba(99,102,241,0.08);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    margin: 16px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.82rem;
+    color: #a5b4fc;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .tip strong { color: #c7d2fe; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  @media (max-width: 700px) {
+    header { padding: 16px 16px; flex-direction: column; gap: 12px; align-items: flex-start; }
+    .tabs { padding: 0 16px; }
+    .content { padding: 20px 16px; }
+    .grid, .grid-3, .two-col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>⚡ Java &amp; SQL Brush-Up</h1>
+    <p>// Cognizant Technical Round — syntax quick-fire</p>
+  </div>
+  <div class="timer" id="timer">60:00</div>
+</header>
+
+<div class="tabs">
+  <div class="tab active-java" onclick="show('java', this)">☕ Java Core</div>
+  <div class="tab" onclick="show('arrays', this)">📦 Arrays &amp; Collections</div>
+  <div class="tab" onclick="show('oop', this)">🧱 OOP</div>
+  <div class="tab" onclick="show('exception', this)">⚠️ Exception &amp; Date</div>
+  <div class="tab" onclick="show('sql', this)">🗄️ SQL Queries</div>
+  <div class="tab" onclick="show('sqlfn', this)">🔧 SQL Functions &amp; Joins</div>
+</div>
+
+<div class="content">
+
+<!-- ============ JAVA CORE ============ -->
+<div id="java" class="section active">
+  <div class="section-title"><span class="badge-java">JAVA</span> Control Flow · Strings · Searching &amp; Sorting</div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-header java">🔁 Control Flow</div>
+      <pre><span class="cm">// if-else</span>
+<span class="kw">if</span> (x > <span class="num">10</span>) { ... } <span class="kw">else if</span> (x == <span class="num">5</span>) { ... } <span class="kw">else</span> { ... }
+
+<span class="cm">// switch</span>
+<span class="kw">switch</span> (day) {
+  <span class="kw">case</span> <span class="str">"MON"</span>: <span class="fn">System.out.println</span>(<span class="str">"Monday"</span>); <span class="kw">break</span>;
+  <span class="kw">default</span>:  <span class="fn">System.out.println</span>(<span class="str">"Other"</span>);
+}
+
+<span class="cm">// for / while / do-while</span>
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; n; i++) { ... }
+<span class="kw">while</span> (condition) { ... }
+<span class="kw">do</span> { ... } <span class="kw">while</span> (condition);
+
+<span class="cm">// enhanced for</span>
+<span class="kw">for</span> (<span class="type">String</span> s : list) { <span class="fn">System.out.println</span>(s); }</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">🔡 String Methods (Most Asked)</div>
+      <pre><span class="type">String</span> s = <span class="str">"Hello World"</span>;
+s.<span class="fn">length</span>()           <span class="cm">// 11</span>
+s.<span class="fn">charAt</span>(<span class="num">0</span>)         <span class="cm">// 'H'</span>
+s.<span class="fn">substring</span>(<span class="num">6</span>)      <span class="cm">// "World"</span>
+s.<span class="fn">substring</span>(<span class="num">0</span>,<span class="num">5</span>)    <span class="cm">// "Hello"</span>
+s.<span class="fn">indexOf</span>(<span class="str">"o"</span>)     <span class="cm">// 4</span>
+s.<span class="fn">toUpperCase</span>()    <span class="cm">// "HELLO WORLD"</span>
+s.<span class="fn">toLowerCase</span>()    <span class="cm">// "hello world"</span>
+s.<span class="fn">trim</span>()           <span class="cm">// removes spaces</span>
+s.<span class="fn">replace</span>(<span class="str">"l"</span>,<span class="str">"r"</span>) <span class="cm">// "Herro Worrd"</span>
+s.<span class="fn">split</span>(<span class="str">" "</span>)       <span class="cm">// ["Hello","World"]</span>
+s.<span class="fn">contains</span>(<span class="str">"World"</span>) <span class="cm">// true</span>
+s.<span class="fn">equals</span>(<span class="str">"Hello World"</span>) <span class="cm">// true (use this, not ==)</span>
+s.<span class="fn">startsWith</span>(<span class="str">"He"</span>) <span class="cm">// true</span>
+s.<span class="fn">isEmpty</span>()        <span class="cm">// false</span>
+<span class="type">String</span>.<span class="fn">valueOf</span>(<span class="num">42</span>)  <span class="cm">// "42"</span>
+<span class="type">Integer</span>.<span class="fn">parseInt</span>(<span class="str">"42"</span>) <span class="cm">// 42</span></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">🔍 Searching Algorithms</div>
+      <pre><span class="cm">// Linear Search O(n)</span>
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; arr.length; i++) {
+  <span class="kw">if</span> (arr[i] == target) <span class="kw">return</span> i;
+}
+<span class="kw">return</span> -<span class="num">1</span>;
+
+<span class="cm">// Binary Search O(log n) — array must be SORTED</span>
+<span class="type">int</span> lo = <span class="num">0</span>, hi = arr.length - <span class="num">1</span>;
+<span class="kw">while</span> (lo &lt;= hi) {
+  <span class="type">int</span> mid = lo + (hi - lo) / <span class="num">2</span>;
+  <span class="kw">if</span> (arr[mid] == target) <span class="kw">return</span> mid;
+  <span class="kw">else if</span> (arr[mid] &lt; target) lo = mid + <span class="num">1</span>;
+  <span class="kw">else</span>                          hi = mid - <span class="num">1</span>;
+}
+
+<span class="cm">// Built-in</span>
+<span class="type">Arrays</span>.<span class="fn">binarySearch</span>(arr, target); <span class="cm">// returns index</span></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">📊 Sorting</div>
+      <pre><span class="cm">// Bubble Sort O(n²)</span>
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; n-<span class="num">1</span>; i++)
+  <span class="kw">for</span> (<span class="type">int</span> j = <span class="num">0</span>; j &lt; n-i-<span class="num">1</span>; j++)
+    <span class="kw">if</span> (arr[j] > arr[j+<span class="num">1</span>]) {
+      <span class="type">int</span> tmp = arr[j]; arr[j]=arr[j+<span class="num">1</span>]; arr[j+<span class="num">1</span>]=tmp;
+    }
+
+<span class="cm">// Built-in sort — always use in interviews unless asked</span>
+<span class="type">Arrays</span>.<span class="fn">sort</span>(arr);                   <span class="cm">// primitives asc</span>
+<span class="type">Arrays</span>.<span class="fn">sort</span>(arr, <span class="type">Collections</span>.reverseOrder()); <span class="cm">// desc (Integer[])</span>
+<span class="type">Collections</span>.<span class="fn">sort</span>(list);            <span class="cm">// ArrayList</span>
+list.<span class="fn">sort</span>(<span class="type">Comparator</span>.reverseOrder()); <span class="cm">// desc</span>
+
+<span class="cm">// Sort objects by field</span>
+list.<span class="fn">sort</span>((a, b) -> a.<span class="fn">getName</span>().<span class="fn">compareTo</span>(b.<span class="fn">getName</span>()));</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">🧵 StringBuilder</div>
+      <pre><span class="type">StringBuilder</span> sb = <span class="kw">new</span> <span class="type">StringBuilder</span>();
+sb.<span class="fn">append</span>(<span class="str">"Hello"</span>);
+sb.<span class="fn">append</span>(<span class="str">" World"</span>);
+sb.<span class="fn">insert</span>(<span class="num">5</span>, <span class="str">","</span>);       <span class="cm">// "Hello, World"</span>
+sb.<span class="fn">delete</span>(<span class="num">5</span>, <span class="num">6</span>);         <span class="cm">// removes ","</span>
+sb.<span class="fn">reverse</span>();
+sb.<span class="fn">toString</span>();           <span class="cm">// convert to String</span>
+sb.<span class="fn">length</span>();
+sb.<span class="fn">charAt</span>(<span class="num">0</span>);
+
+<span class="cm">// String → char array</span>
+<span class="kw">char</span>[] chars = str.<span class="fn">toCharArray</span>();
+<span class="type">String</span> back = <span class="kw">new</span> <span class="type">String</span>(chars);</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">⚙️ Problem Solving Patterns</div>
+      <pre><span class="cm">// Swap two numbers without temp</span>
+a = a + b; b = a - b; a = a - b;
+
+<span class="cm">// Check palindrome</span>
+<span class="type">String</span> rev = <span class="kw">new</span> <span class="type">StringBuilder</span>(s).<span class="fn">reverse</span>().<span class="fn">toString</span>();
+<span class="kw">return</span> s.<span class="fn">equals</span>(rev);
+
+<span class="cm">// Count char frequency</span>
+<span class="type">Map</span>&lt;<span class="type">Character</span>,<span class="type">Integer</span>&gt; map = <span class="kw">new</span> <span class="type">HashMap</span>&lt;&gt;();
+<span class="kw">for</span> (<span class="kw">char</span> c : s.<span class="fn">toCharArray</span>())
+  map.<span class="fn">put</span>(c, map.<span class="fn">getOrDefault</span>(c, <span class="num">0</span>) + <span class="num">1</span>);
+
+<span class="cm">// Fibonacci</span>
+<span class="type">int</span> a=<span class="num">0</span>, b=<span class="num">1</span>;
+<span class="kw">for</span>(<span class="type">int</span> i=<span class="num">0</span>; i&lt;n; i++) { <span class="fn">print</span>(a); <span class="type">int</span> c=a+b; a=b; b=c; }</pre>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ ARRAYS & COLLECTIONS ============ -->
+<div id="arrays" class="section">
+  <div class="section-title"><span class="badge-java">JAVA</span> Arrays &amp; Collections Framework</div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-header java">📐 Arrays</div>
+      <pre><span class="cm">// declare & init</span>
+<span class="type">int</span>[] arr = <span class="kw">new</span> <span class="type">int</span>[<span class="num">5</span>];
+<span class="type">int</span>[] arr = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>};
+<span class="type">int</span>[][] matrix = <span class="kw">new</span> <span class="type">int</span>[<span class="num">3</span>][<span class="num">3</span>];
+
+<span class="cm">// useful methods</span>
+arr.length                        <span class="cm">// size (no ())</span>
+<span class="type">Arrays</span>.<span class="fn">sort</span>(arr);
+<span class="type">Arrays</span>.<span class="fn">fill</span>(arr, <span class="num">0</span>);
+<span class="type">Arrays</span>.<span class="fn">copyOf</span>(arr, newLen);
+<span class="type">Arrays</span>.<span class="fn">copyOfRange</span>(arr, from, to);
+<span class="type">Arrays</span>.<span class="fn">toString</span>(arr);             <span class="cm">// print nicely</span>
+<span class="type">Arrays</span>.<span class="fn">equals</span>(arr1, arr2);
+
+<span class="cm">// array → list</span>
+<span class="type">List</span>&lt;<span class="type">Integer</span>&gt; list = <span class="kw">new</span> <span class="type">ArrayList</span>&lt;&gt;(<span class="type">Arrays</span>.<span class="fn">asList</span>(arr));</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">📋 ArrayList</div>
+      <pre><span class="type">ArrayList</span>&lt;<span class="type">String</span>&gt; list = <span class="kw">new</span> <span class="type">ArrayList</span>&lt;&gt;();
+list.<span class="fn">add</span>(<span class="str">"A"</span>);
+list.<span class="fn">add</span>(<span class="num">0</span>, <span class="str">"Z"</span>);       <span class="cm">// insert at index</span>
+list.<span class="fn">get</span>(<span class="num">0</span>);             <span class="cm">// "Z"</span>
+list.<span class="fn">set</span>(<span class="num">0</span>, <span class="str">"X"</span>);       <span class="cm">// replace</span>
+list.<span class="fn">remove</span>(<span class="num">0</span>);         <span class="cm">// by index</span>
+list.<span class="fn">remove</span>(<span class="str">"A"</span>);       <span class="cm">// by value</span>
+list.<span class="fn">size</span>();             <span class="cm">// length</span>
+list.<span class="fn">contains</span>(<span class="str">"X"</span>);    <span class="cm">// true/false</span>
+list.<span class="fn">indexOf</span>(<span class="str">"X"</span>);     <span class="cm">// index</span>
+list.<span class="fn">isEmpty</span>();
+list.<span class="fn">clear</span>();
+<span class="type">Collections</span>.<span class="fn">sort</span>(list);
+<span class="type">Collections</span>.<span class="fn">reverse</span>(list);
+<span class="type">Collections</span>.<span class="fn">max</span>(list);
+<span class="type">Collections</span>.<span class="fn">min</span>(list);</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">🗺️ HashMap</div>
+      <pre><span class="type">HashMap</span>&lt;<span class="type">String</span>, <span class="type">Integer</span>&gt; map = <span class="kw">new</span> <span class="type">HashMap</span>&lt;&gt;();
+map.<span class="fn">put</span>(<span class="str">"a"</span>, <span class="num">1</span>);
+map.<span class="fn">get</span>(<span class="str">"a"</span>);              <span class="cm">// 1</span>
+map.<span class="fn">getOrDefault</span>(<span class="str">"x"</span>, <span class="num">0</span>); <span class="cm">// 0 if missing</span>
+map.<span class="fn">containsKey</span>(<span class="str">"a"</span>);     <span class="cm">// true</span>
+map.<span class="fn">containsValue</span>(<span class="num">1</span>);     <span class="cm">// true</span>
+map.<span class="fn">remove</span>(<span class="str">"a"</span>);
+map.<span class="fn">size</span>();
+map.<span class="fn">isEmpty</span>();
+map.<span class="fn">keySet</span>();              <span class="cm">// Set of keys</span>
+map.<span class="fn">values</span>();             <span class="cm">// Collection of values</span>
+map.<span class="fn">entrySet</span>();           <span class="cm">// Set of key-value pairs</span>
+
+<span class="cm">// iterate</span>
+<span class="kw">for</span> (<span class="type">Map.Entry</span>&lt;<span class="type">String</span>,<span class="type">Integer</span>&gt; e : map.<span class="fn">entrySet</span>())
+  <span class="fn">System.out.println</span>(e.<span class="fn">getKey</span>() + <span class="str">"="</span> + e.<span class="fn">getValue</span>());</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">🔧 HashSet · Stack · Queue</div>
+      <pre><span class="cm">// HashSet — unique elements, no order</span>
+<span class="type">HashSet</span>&lt;<span class="type">Integer</span>&gt; set = <span class="kw">new</span> <span class="type">HashSet</span>&lt;&gt;();
+set.<span class="fn">add</span>(<span class="num">1</span>); set.<span class="fn">contains</span>(<span class="num">1</span>); set.<span class="fn">remove</span>(<span class="num">1</span>);
+
+<span class="cm">// Stack — LIFO</span>
+<span class="type">Stack</span>&lt;<span class="type">Integer</span>&gt; stack = <span class="kw">new</span> <span class="type">Stack</span>&lt;&gt;();
+stack.<span class="fn">push</span>(<span class="num">10</span>);
+stack.<span class="fn">pop</span>();           <span class="cm">// removes & returns top</span>
+stack.<span class="fn">peek</span>();          <span class="cm">// just look at top</span>
+stack.<span class="fn">isEmpty</span>();
+
+<span class="cm">// Queue (LinkedList) — FIFO</span>
+<span class="type">Queue</span>&lt;<span class="type">Integer</span>&gt; q = <span class="kw">new</span> <span class="type">LinkedList</span>&lt;&gt;();
+q.<span class="fn">offer</span>(<span class="num">10</span>);          <span class="cm">// enqueue</span>
+q.<span class="fn">poll</span>();              <span class="cm">// dequeue (removes)</span>
+q.<span class="fn">peek</span>();              <span class="cm">// front element</span>
+
+<span class="cm">// LinkedList</span>
+<span class="type">LinkedList</span>&lt;<span class="type">String</span>&gt; ll = <span class="kw">new</span> <span class="type">LinkedList</span>&lt;&gt;();
+ll.<span class="fn">addFirst</span>(<span class="str">"A"</span>); ll.<span class="fn">addLast</span>(<span class="str">"B"</span>);
+ll.<span class="fn">removeFirst</span>(); ll.<span class="fn">removeLast</span>();</pre>
+    </div>
+
+  </div>
+  <div class="tip">⚡ <strong>KEY DIFFERENCE:</strong> Array = fixed size, fast access. ArrayList = dynamic. HashMap = O(1) get/put. HashSet = no duplicates. Use <code>Integer</code> (wrapper) for generics, <code>int</code> for primitives.</div>
+</div>
+
+<!-- ============ OOP ============ -->
+<div id="oop" class="section">
+  <div class="section-title"><span class="badge-java">JAVA</span> Object Oriented Programming</div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-header java">🏗️ Class, Object, Constructor</div>
+      <pre><span class="kw">public class</span> <span class="type">Animal</span> {
+  <span class="cm">// fields (instance variables)</span>
+  <span class="kw">private</span> <span class="type">String</span> name;
+  <span class="kw">private</span> <span class="type">int</span> age;
+
+  <span class="cm">// constructor</span>
+  <span class="kw">public</span> <span class="fn">Animal</span>(<span class="type">String</span> name, <span class="type">int</span> age) {
+    <span class="kw">this</span>.name = name;
+    <span class="kw">this</span>.age  = age;
+  }
+
+  <span class="cm">// getters & setters</span>
+  <span class="kw">public</span> <span class="type">String</span> <span class="fn">getName</span>() { <span class="kw">return</span> name; }
+  <span class="kw">public void</span> <span class="fn">setName</span>(<span class="type">String</span> n) { <span class="kw">this</span>.name = n; }
+
+  <span class="cm">// method</span>
+  <span class="kw">public void</span> <span class="fn">speak</span>() {
+    <span class="fn">System.out.println</span>(<span class="str">"..."</span>);
+  }
+}
+
+<span class="cm">// create object</span>
+<span class="type">Animal</span> a = <span class="kw">new</span> <span class="type">Animal</span>(<span class="str">"Dog"</span>, <span class="num">3</span>);
+a.<span class="fn">speak</span>();</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">🧬 Inheritance &amp; Polymorphism</div>
+      <pre><span class="cm">// Inheritance — extends</span>
+<span class="kw">public class</span> <span class="type">Dog</span> <span class="kw">extends</span> <span class="type">Animal</span> {
+  <span class="kw">public</span> <span class="fn">Dog</span>(<span class="type">String</span> name) {
+    <span class="kw">super</span>(name, <span class="num">0</span>); <span class="cm">// call parent constructor</span>
+  }
+
+  <span class="cm">// Override (Polymorphism)</span>
+  <span class="kw">@Override</span>
+  <span class="kw">public void</span> <span class="fn">speak</span>() {
+    <span class="fn">System.out.println</span>(<span class="str">"Woof!"</span>);
+  }
+}
+
+<span class="cm">// Upcasting</span>
+<span class="type">Animal</span> a = <span class="kw">new</span> <span class="type">Dog</span>(<span class="str">"Rex"</span>); <span class="cm">// valid</span>
+a.<span class="fn">speak</span>(); <span class="cm">// calls Dog's speak → "Woof!"</span>
+
+<span class="cm">// instanceof check</span>
+<span class="kw">if</span> (a <span class="kw">instanceof</span> <span class="type">Dog</span>) {
+  <span class="type">Dog</span> d = (<span class="type">Dog</span>) a; <span class="cm">// downcast</span>
+}</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">📜 Interface &amp; Abstract Class</div>
+      <pre><span class="cm">// Interface — all methods abstract by default</span>
+<span class="kw">public interface</span> <span class="type">Flyable</span> {
+  <span class="kw">void</span> <span class="fn">fly</span>();                         <span class="cm">// abstract</span>
+  <span class="kw">default void</span> <span class="fn">land</span>() { ... }        <span class="cm">// default impl</span>
+}
+
+<span class="cm">// Abstract class — can have both</span>
+<span class="kw">public abstract class</span> <span class="type">Shape</span> {
+  <span class="kw">abstract double</span> <span class="fn">area</span>();            <span class="cm">// must override</span>
+  <span class="kw">public void</span> <span class="fn">print</span>() { ... }        <span class="cm">// concrete</span>
+}
+
+<span class="cm">// class can implement multiple interfaces</span>
+<span class="kw">public class</span> <span class="type">Bird</span> <span class="kw">extends</span> <span class="type">Animal</span>
+                  <span class="kw">implements</span> <span class="type">Flyable</span> {
+  <span class="kw">public void</span> <span class="fn">fly</span>() { <span class="fn">System.out.println</span>(<span class="str">"Soar!"</span>); }
+}
+
+<span class="cm">// KEY: interface → implements, abstract → extends</span>
+<span class="cm">// Cannot instantiate abstract class or interface</span></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">🔒 Encapsulation &amp; Access Modifiers</div>
+      <pre><span class="kw">private</span>   <span class="cm">// same class only</span>
+<span class="kw">protected</span> <span class="cm">// same class + subclass + package</span>
+<span class="kw">public</span>    <span class="cm">// everywhere</span>
+<span class="cm">(default) // same package only</span>
+
+<span class="cm">// static — belongs to class, not object</span>
+<span class="kw">static int</span> count = <span class="num">0</span>;
+<span class="kw">static void</span> <span class="fn">util</span>() { ... }
+<span class="type">ClassName</span>.<span class="fn">util</span>(); <span class="cm">// call without object</span>
+
+<span class="cm">// final</span>
+<span class="kw">final int</span> MAX = <span class="num">100</span>;     <span class="cm">// constant</span>
+<span class="kw">final class</span> <span class="type">Sealed</span> {}    <span class="cm">// can't extend</span>
+<span class="kw">final void</span> <span class="fn">method</span>() {}  <span class="cm">// can't override</span>
+
+<span class="cm">// this & super</span>
+<span class="kw">this</span>.name = name;        <span class="cm">// current object</span>
+<span class="kw">super</span>.<span class="fn">method</span>();          <span class="cm">// parent method</span></pre>
+    </div>
+
+  </div>
+  <div class="tip">⚡ <strong>4 PILLARS:</strong> Encapsulation (private fields + getters/setters) · Inheritance (extends) · Polymorphism (override, overload) · Abstraction (abstract class, interface)</div>
+</div>
+
+<!-- ============ EXCEPTION & DATE ============ -->
+<div id="exception" class="section">
+  <div class="section-title"><span class="badge-java">JAVA</span> Exception Handling &amp; Date/Time</div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-header java">⚠️ Try-Catch-Finally</div>
+      <pre><span class="kw">try</span> {
+  <span class="type">int</span> res = <span class="num">10</span> / <span class="num">0</span>;           <span class="cm">// throws ArithmeticException</span>
+} <span class="kw">catch</span> (<span class="type">ArithmeticException</span> e) {
+  <span class="fn">System.out.println</span>(<span class="str">"Math error: "</span> + e.<span class="fn">getMessage</span>());
+} <span class="kw">catch</span> (<span class="type">Exception</span> e) {       <span class="cm">// catches anything else</span>
+  e.<span class="fn">printStackTrace</span>();
+} <span class="kw">finally</span> {
+  <span class="fn">System.out.println</span>(<span class="str">"Always runs"</span>); <span class="cm">// even if exception</span>
+}
+
+<span class="cm">// throw manually</span>
+<span class="kw">throw new</span> <span class="type">IllegalArgumentException</span>(<span class="str">"Bad input"</span>);
+
+<span class="cm">// declare checked exception</span>
+<span class="kw">public void</span> <span class="fn">read</span>() <span class="kw">throws</span> <span class="type">IOException</span> { ... }
+
+<span class="cm">// try-with-resources (auto close)</span>
+<span class="kw">try</span> (<span class="type">BufferedReader</span> br = <span class="kw">new</span> <span class="type">BufferedReader</span>(...)) {
+  <span class="type">String</span> line = br.<span class="fn">readLine</span>();
+}</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">🏷️ Exception Hierarchy</div>
+      <pre><span class="cm">// Throwable</span>
+<span class="cm">//  ├── Error (don't catch: StackOverflowError, OOM)</span>
+<span class="cm">//  └── Exception</span>
+<span class="cm">//       ├── Checked (must handle or declare throws)</span>
+<span class="cm">//       │     IOException, SQLException, FileNotFoundException</span>
+<span class="cm">//       └── Unchecked (RuntimeException — optional)</span>
+<span class="cm">//             NullPointerException</span>
+<span class="cm">//             ArrayIndexOutOfBoundsException</span>
+<span class="cm">//             ArithmeticException</span>
+<span class="cm">//             NumberFormatException</span>
+<span class="cm">//             ClassCastException</span>
+<span class="cm">//             IllegalArgumentException</span>
+
+<span class="cm">// Custom Exception</span>
+<span class="kw">class</span> <span class="type">MyException</span> <span class="kw">extends</span> <span class="type">RuntimeException</span> {
+  <span class="kw">public</span> <span class="fn">MyException</span>(<span class="type">String</span> msg) { <span class="kw">super</span>(msg); }
+}
+<span class="kw">throw new</span> <span class="type">MyException</span>(<span class="str">"Custom error"</span>);</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">📅 Date &amp; Time (Java 8+)</div>
+      <pre><span class="kw">import</span> java.time.*;
+<span class="kw">import</span> java.time.format.DateTimeFormatter;
+
+<span class="cm">// current date/time</span>
+<span class="type">LocalDate</span> today = <span class="type">LocalDate</span>.<span class="fn">now</span>();        <span class="cm">// 2026-03-09</span>
+<span class="type">LocalTime</span> now   = <span class="type">LocalTime</span>.<span class="fn">now</span>();        <span class="cm">// 14:30:00</span>
+<span class="type">LocalDateTime</span> dt = <span class="type">LocalDateTime</span>.<span class="fn">now</span>();
+
+<span class="cm">// create specific date</span>
+<span class="type">LocalDate</span> d = <span class="type">LocalDate</span>.<span class="fn">of</span>(<span class="num">2024</span>, <span class="num">1</span>, <span class="num">15</span>);
+<span class="type">LocalTime</span> t = <span class="type">LocalTime</span>.<span class="fn">of</span>(<span class="num">10</span>, <span class="num">30</span>);
+
+<span class="cm">// operations</span>
+today.<span class="fn">plusDays</span>(<span class="num">5</span>);
+today.<span class="fn">minusMonths</span>(<span class="num">1</span>);
+today.<span class="fn">getYear</span>();  today.<span class="fn">getMonth</span>();  today.<span class="fn">getDayOfMonth</span>();
+today.<span class="fn">isBefore</span>(d);  today.<span class="fn">isAfter</span>(d);
+
+<span class="cm">// format</span>
+<span class="type">DateTimeFormatter</span> fmt = <span class="type">DateTimeFormatter</span>.<span class="fn">ofPattern</span>(<span class="str">"dd/MM/yyyy"</span>);
+<span class="type">String</span> s = today.<span class="fn">format</span>(fmt);           <span class="cm">// "09/03/2026"</span>
+<span class="type">LocalDate</span> parsed = <span class="type">LocalDate</span>.<span class="fn">parse</span>(<span class="str">"09/03/2026"</span>, fmt);</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header java">🔧 Legacy Date (older code)</div>
+      <pre><span class="kw">import</span> java.util.Date;
+<span class="kw">import</span> java.text.SimpleDateFormat;
+
+<span class="type">Date</span> d = <span class="kw">new</span> <span class="type">Date</span>();  <span class="cm">// current</span>
+<span class="type">SimpleDateFormat</span> sdf = <span class="kw">new</span> <span class="type">SimpleDateFormat</span>(<span class="str">"dd/MM/yyyy"</span>);
+<span class="type">String</span> s   = sdf.<span class="fn">format</span>(d);        <span class="cm">// Date → String</span>
+<span class="type">Date</span>   d2  = sdf.<span class="fn">parse</span>(<span class="str">"09/03/2026"</span>); <span class="cm">// String → Date</span>
+
+<span class="cm">// Patterns: yyyy=year MM=month dd=day</span>
+<span class="cm">//           HH=hour mm=min ss=sec</span>
+
+<span class="cm">// Period — date difference</span>
+<span class="type">Period</span> p = <span class="type">Period</span>.<span class="fn">between</span>(d1, d2);
+p.<span class="fn">getDays</span>(); p.<span class="fn">getMonths</span>(); p.<span class="fn">getYears</span>();</pre>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ SQL QUERIES ============ -->
+<div id="sql" class="section">
+  <div class="section-title"><span class="badge-sql">SQL</span> DDL · DML · DCL · TCL + Constraints</div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-header sql">🏗️ DDL — Data Definition Language</div>
+      <pre><span class="cm">-- CREATE</span>
+<span class="sql-kw">CREATE TABLE</span> employees (
+  id       <span class="type">INT</span> <span class="sql-kw">PRIMARY KEY AUTO_INCREMENT</span>,
+  name     <span class="type">VARCHAR</span>(<span class="num">100</span>) <span class="sql-kw">NOT NULL</span>,
+  dept_id  <span class="type">INT</span> <span class="sql-kw">REFERENCES</span> departments(id),
+  salary   <span class="type">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>) <span class="sql-kw">DEFAULT</span> <span class="num">0</span>,
+  email    <span class="type">VARCHAR</span>(<span class="num">100</span>) <span class="sql-kw">UNIQUE</span>
+);
+
+<span class="cm">-- ALTER</span>
+<span class="sql-kw">ALTER TABLE</span> employees <span class="sql-kw">ADD</span> phone <span class="type">VARCHAR</span>(<span class="num">15</span>);
+<span class="sql-kw">ALTER TABLE</span> employees <span class="sql-kw">DROP COLUMN</span> phone;
+<span class="sql-kw">ALTER TABLE</span> employees <span class="sql-kw">MODIFY</span> name <span class="type">VARCHAR</span>(<span class="num">200</span>);
+<span class="sql-kw">ALTER TABLE</span> employees <span class="sql-kw">RENAME TO</span> staff;
+
+<span class="cm">-- DROP & TRUNCATE</span>
+<span class="sql-kw">DROP TABLE</span> employees;        <span class="cm">-- removes table+data</span>
+<span class="sql-kw">TRUNCATE TABLE</span> employees;   <span class="cm">-- clears data, keeps table</span></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header sql">✏️ DML — Data Manipulation Language</div>
+      <pre><span class="cm">-- INSERT</span>
+<span class="sql-kw">INSERT INTO</span> employees (name, salary)
+<span class="sql-kw">VALUES</span> (<span class="sql-val">'Alice'</span>, <span class="num">50000</span>);
+
+<span class="sql-kw">INSERT INTO</span> employees <span class="sql-kw">VALUES</span>
+  (<span class="num">1</span>, <span class="sql-val">'Alice'</span>, <span class="num">1</span>, <span class="num">50000</span>, <span class="sql-val">'a@x.com'</span>),
+  (<span class="num">2</span>, <span class="sql-val">'Bob'</span>,   <span class="num">2</span>, <span class="num">60000</span>, <span class="sql-val">'b@x.com'</span>);
+
+<span class="cm">-- UPDATE</span>
+<span class="sql-kw">UPDATE</span> employees
+<span class="sql-kw">SET</span> salary = salary * <span class="num">1.1</span>
+<span class="sql-kw">WHERE</span> dept_id = <span class="num">3</span>;
+
+<span class="cm">-- DELETE</span>
+<span class="sql-kw">DELETE FROM</span> employees <span class="sql-kw">WHERE</span> id = <span class="num">5</span>;
+
+<span class="cm">-- SELECT</span>
+<span class="sql-kw">SELECT</span> name, salary <span class="sql-kw">FROM</span> employees
+<span class="sql-kw">WHERE</span> salary > <span class="num">40000</span>
+<span class="sql-kw">ORDER BY</span> salary <span class="sql-kw">DESC</span>
+<span class="sql-kw">LIMIT</span> <span class="num">5</span>;</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header sql">🔐 DCL &amp; TCL</div>
+      <pre><span class="cm">-- DCL (Data Control Language)</span>
+<span class="sql-kw">GRANT SELECT</span>, <span class="sql-kw">INSERT ON</span> employees <span class="sql-kw">TO</span> user1;
+<span class="sql-kw">REVOKE INSERT ON</span> employees <span class="sql-kw">FROM</span> user1;
+
+<span class="cm">-- TCL (Transaction Control Language)</span>
+<span class="sql-kw">BEGIN</span>;                     <span class="cm">-- or START TRANSACTION</span>
+  <span class="sql-kw">UPDATE</span> accounts <span class="sql-kw">SET</span> bal = bal - <span class="num">100</span> <span class="sql-kw">WHERE</span> id=<span class="num">1</span>;
+  <span class="sql-kw">UPDATE</span> accounts <span class="sql-kw">SET</span> bal = bal + <span class="num">100</span> <span class="sql-kw">WHERE</span> id=<span class="num">2</span>;
+<span class="sql-kw">COMMIT</span>;                    <span class="cm">-- save both or none</span>
+
+<span class="sql-kw">ROLLBACK</span>;                  <span class="cm">-- undo if error</span>
+<span class="sql-kw">SAVEPOINT</span> sp1;             <span class="cm">-- partial rollback point</span>
+<span class="sql-kw">ROLLBACK TO</span> sp1;           <span class="cm">-- undo to savepoint</span>
+
+<span class="cm">-- ACID: Atomicity, Consistency, Isolation, Durability</span></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header sql">🔒 Constraints</div>
+      <pre><span class="sql-kw">PRIMARY KEY</span>   <span class="cm">-- unique + not null, one per table</span>
+<span class="sql-kw">FOREIGN KEY</span>   <span class="cm">-- links to PK of another table</span>
+<span class="sql-kw">UNIQUE</span>        <span class="cm">-- no duplicates, allows one NULL</span>
+<span class="sql-kw">NOT NULL</span>      <span class="cm">-- must have a value</span>
+<span class="sql-kw">DEFAULT</span>       <span class="cm">-- fallback value</span>
+<span class="sql-kw">CHECK</span>         <span class="cm">-- custom rule</span>
+
+<span class="cm">-- inline</span>
+salary <span class="type">INT</span> <span class="sql-kw">CHECK</span> (salary > <span class="num">0</span>)
+
+<span class="cm">-- table-level</span>
+<span class="sql-kw">CONSTRAINT</span> fk_dept <span class="sql-kw">FOREIGN KEY</span> (dept_id)
+  <span class="sql-kw">REFERENCES</span> departments(id)
+  <span class="sql-kw">ON DELETE CASCADE</span>
+  <span class="sql-kw">ON UPDATE SET NULL</span>
+
+<span class="cm">-- add after creation</span>
+<span class="sql-kw">ALTER TABLE</span> emp <span class="sql-kw">ADD CONSTRAINT</span> chk_sal <span class="sql-kw">CHECK</span> (salary>=<span class="num">0</span>);</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header sql">🔍 WHERE Operators</div>
+      <pre><span class="sql-kw">WHERE</span> salary <span class="sql-kw">BETWEEN</span> <span class="num">30000</span> <span class="sql-kw">AND</span> <span class="num">60000</span>
+<span class="sql-kw">WHERE</span> dept_id <span class="sql-kw">IN</span> (<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>)
+<span class="sql-kw">WHERE</span> name <span class="sql-kw">LIKE</span> <span class="sql-val">'A%'</span>          <span class="cm">-- starts with A</span>
+<span class="sql-kw">WHERE</span> name <span class="sql-kw">LIKE</span> <span class="sql-val">'%son'</span>        <span class="cm">-- ends with son</span>
+<span class="sql-kw">WHERE</span> name <span class="sql-kw">LIKE</span> <span class="sql-val">'_o%'</span>         <span class="cm">-- 2nd char is o</span>
+<span class="sql-kw">WHERE</span> manager_id <span class="sql-kw">IS NULL</span>
+<span class="sql-kw">WHERE</span> manager_id <span class="sql-kw">IS NOT NULL</span>
+<span class="sql-kw">WHERE</span> salary > <span class="num">50000</span> <span class="sql-kw">AND</span> dept_id = <span class="num">2</span>
+<span class="sql-kw">WHERE</span> salary &lt; <span class="num">30000</span> <span class="sql-kw">OR</span>  dept_id = <span class="num">5</span>
+<span class="sql-kw">WHERE NOT</span> dept_id = <span class="num">3</span>
+
+<span class="cm">-- Subquery</span>
+<span class="sql-kw">WHERE</span> salary > (<span class="sql-kw">SELECT AVG</span>(salary) <span class="sql-kw">FROM</span> employees)
+<span class="sql-kw">WHERE</span> dept_id <span class="sql-kw">IN</span> (<span class="sql-kw">SELECT</span> id <span class="sql-kw">FROM</span> dept <span class="sql-kw">WHERE</span> loc=<span class="sql-val">'HYD'</span>)</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header sql">📊 GROUP BY, HAVING, ORDER BY</div>
+      <pre><span class="cm">-- GROUP BY + aggregate</span>
+<span class="sql-kw">SELECT</span> dept_id,
+       <span class="sql-fn">COUNT</span>(*) <span class="sql-kw">AS</span> headcount,
+       <span class="sql-fn">AVG</span>(salary) <span class="sql-kw">AS</span> avg_sal,
+       <span class="sql-fn">MAX</span>(salary), <span class="sql-fn">MIN</span>(salary), <span class="sql-fn">SUM</span>(salary)
+<span class="sql-kw">FROM</span> employees
+<span class="sql-kw">GROUP BY</span> dept_id
+<span class="sql-kw">HAVING</span> <span class="sql-fn">COUNT</span>(*) > <span class="num">5</span>         <span class="cm">-- filter AFTER grouping</span>
+<span class="sql-kw">ORDER BY</span> avg_sal <span class="sql-kw">DESC</span>;
+
+<span class="cm">-- WHERE vs HAVING</span>
+<span class="cm">-- WHERE  filters ROWS  (before grouping)</span>
+<span class="cm">-- HAVING filters GROUPS (after grouping)</span>
+
+<span class="sql-kw">SELECT</span> dept_id, <span class="sql-fn">COUNT</span>(*)
+<span class="sql-kw">FROM</span> employees
+<span class="sql-kw">WHERE</span> salary > <span class="num">30000</span>     <span class="cm">-- rows filter</span>
+<span class="sql-kw">GROUP BY</span> dept_id
+<span class="sql-kw">HAVING</span> <span class="sql-fn">COUNT</span>(*) >= <span class="num">3</span>;   <span class="cm">-- group filter</span></pre>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ SQL FUNCTIONS & JOINS ============ -->
+<div id="sqlfn" class="section">
+  <div class="section-title"><span class="badge-sql">SQL</span> Functions · Joins · Views · Indexes · Subqueries</div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-header sql">🔧 SQL Functions</div>
+      <pre><span class="cm">-- String functions</span>
+<span class="sql-fn">UPPER</span>(<span class="sql-val">'hello'</span>)           <span class="cm">-- 'HELLO'</span>
+<span class="sql-fn">LOWER</span>(<span class="sql-val">'HELLO'</span>)           <span class="cm">-- 'hello'</span>
+<span class="sql-fn">LENGTH</span>(<span class="sql-val">'hello'</span>)          <span class="cm">-- 5</span>
+<span class="sql-fn">SUBSTRING</span>(name, <span class="num">1</span>, <span class="num">3</span>)    <span class="cm">-- first 3 chars</span>
+<span class="sql-fn">CONCAT</span>(first, <span class="sql-val">' '</span>, last) <span class="cm">-- join strings</span>
+<span class="sql-fn">TRIM</span>(<span class="sql-val">'  hi  '</span>)           <span class="cm">-- 'hi'</span>
+<span class="sql-fn">REPLACE</span>(str, <span class="sql-val">'a'</span>, <span class="sql-val">'b'</span>)  <span class="cm">-- replace chars</span>
+
+<span class="cm">-- Number functions</span>
+<span class="sql-fn">ROUND</span>(<span class="num">3.14159</span>, <span class="num">2</span>)        <span class="cm">-- 3.14</span>
+<span class="sql-fn">CEIL</span>(<span class="num">3.2</span>)                <span class="cm">-- 4</span>
+<span class="sql-fn">FLOOR</span>(<span class="num">3.9</span>)               <span class="cm">-- 3</span>
+<span class="sql-fn">ABS</span>(-<span class="num">5</span>)                  <span class="cm">-- 5</span>
+<span class="sql-fn">MOD</span>(<span class="num">10</span>, <span class="num">3</span>)               <span class="cm">-- 1</span>
+
+<span class="cm">-- Date functions</span>
+<span class="sql-fn">NOW</span>()                     <span class="cm">-- current datetime</span>
+<span class="sql-fn">CURDATE</span>()                 <span class="cm">-- current date</span>
+<span class="sql-fn">YEAR</span>(dob), <span class="sql-fn">MONTH</span>(dob), <span class="sql-fn">DAY</span>(dob)
+<span class="sql-fn">DATEDIFF</span>(d1, d2)          <span class="cm">-- days between</span>
+<span class="sql-fn">DATE_ADD</span>(date, <span class="sql-kw">INTERVAL</span> <span class="num">30</span> <span class="sql-kw">DAY</span>)</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header sql">🔗 JOINs — Most Asked!</div>
+      <pre><span class="cm">-- INNER JOIN — only matching rows both tables</span>
+<span class="sql-kw">SELECT</span> e.name, d.dept_name
+<span class="sql-kw">FROM</span> employees e
+<span class="sql-kw">INNER JOIN</span> departments d <span class="sql-kw">ON</span> e.dept_id = d.id;
+
+<span class="cm">-- LEFT JOIN — all from left, matching from right (NULL if no match)</span>
+<span class="sql-kw">SELECT</span> e.name, d.dept_name
+<span class="sql-kw">FROM</span> employees e
+<span class="sql-kw">LEFT JOIN</span> departments d <span class="sql-kw">ON</span> e.dept_id = d.id;
+
+<span class="cm">-- RIGHT JOIN — all from right, matching from left</span>
+<span class="sql-kw">SELECT</span> e.name, d.dept_name
+<span class="sql-kw">FROM</span> employees e
+<span class="sql-kw">RIGHT JOIN</span> departments d <span class="sql-kw">ON</span> e.dept_id = d.id;
+
+<span class="cm">-- FULL OUTER JOIN — all rows from both</span>
+<span class="sql-kw">SELECT</span> * <span class="sql-kw">FROM</span> A <span class="sql-kw">FULL OUTER JOIN</span> B <span class="sql-kw">ON</span> A.id = B.id;
+
+<span class="cm">-- SELF JOIN — join table with itself</span>
+<span class="sql-kw">SELECT</span> e.name, m.name <span class="sql-kw">AS</span> manager
+<span class="sql-kw">FROM</span> employees e
+<span class="sql-kw">JOIN</span> employees m <span class="sql-kw">ON</span> e.manager_id = m.id;
+
+<span class="cm">-- CROSS JOIN — cartesian product</span>
+<span class="sql-kw">SELECT</span> * <span class="sql-kw">FROM</span> A <span class="sql-kw">CROSS JOIN</span> B;</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header sql">🔭 Subqueries</div>
+      <pre><span class="cm">-- Scalar subquery (returns one value)</span>
+<span class="sql-kw">SELECT</span> name, salary
+<span class="sql-kw">FROM</span> employees
+<span class="sql-kw">WHERE</span> salary = (<span class="sql-kw">SELECT MAX</span>(salary) <span class="sql-kw">FROM</span> employees);
+
+<span class="cm">-- IN subquery</span>
+<span class="sql-kw">SELECT</span> name <span class="sql-kw">FROM</span> employees
+<span class="sql-kw">WHERE</span> dept_id <span class="sql-kw">IN</span>
+  (<span class="sql-kw">SELECT</span> id <span class="sql-kw">FROM</span> departments <span class="sql-kw">WHERE</span> location=<span class="sql-val">'HYD'</span>);
+
+<span class="cm">-- EXISTS subquery</span>
+<span class="sql-kw">SELECT</span> name <span class="sql-kw">FROM</span> employees e
+<span class="sql-kw">WHERE EXISTS</span> (
+  <span class="sql-kw">SELECT</span> <span class="num">1</span> <span class="sql-kw">FROM</span> orders o <span class="sql-kw">WHERE</span> o.emp_id = e.id
+);
+
+<span class="cm">-- Derived table (subquery in FROM)</span>
+<span class="sql-kw">SELECT</span> dept_id, <span class="sql-fn">AVG</span>(sal)
+<span class="sql-kw">FROM</span> (<span class="sql-kw">SELECT</span> dept_id, salary <span class="sql-kw">AS</span> sal
+      <span class="sql-kw">FROM</span> employees <span class="sql-kw">WHERE</span> active=<span class="num">1</span>) <span class="sql-kw">AS</span> sub
+<span class="sql-kw">GROUP BY</span> dept_id;</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header sql">👁️ Views &amp; Indexes</div>
+      <pre><span class="cm">-- VIEW — virtual table, stores query not data</span>
+<span class="sql-kw">CREATE VIEW</span> high_earners <span class="sql-kw">AS</span>
+  <span class="sql-kw">SELECT</span> name, salary, dept_id
+  <span class="sql-kw">FROM</span> employees
+  <span class="sql-kw">WHERE</span> salary > <span class="num">80000</span>;
+
+<span class="sql-kw">SELECT</span> * <span class="sql-kw">FROM</span> high_earners;   <span class="cm">-- use like a table</span>
+<span class="sql-kw">DROP VIEW</span> high_earners;
+
+<span class="cm">-- INDEX — speeds up search (slower on insert/update)</span>
+<span class="sql-kw">CREATE INDEX</span> idx_name <span class="sql-kw">ON</span> employees(name);
+<span class="sql-kw">CREATE UNIQUE INDEX</span> idx_email <span class="sql-kw">ON</span> employees(email);
+<span class="sql-kw">DROP INDEX</span> idx_name <span class="sql-kw">ON</span> employees;
+
+<span class="cm">-- Composite index</span>
+<span class="sql-kw">CREATE INDEX</span> idx_dept_sal <span class="sql-kw">ON</span> employees(dept_id, salary);
+
+<span class="cm">-- PK auto creates a unique index</span>
+<span class="cm">-- Use indexes on columns used in WHERE/JOIN/ORDER BY</span></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header green">⚡ Quick Reference: SELECT Order</div>
+      <pre><span class="cm">-- Always write in this order:</span>
+<span class="sql-kw">SELECT</span>   columns / <span class="sql-fn">agg functions</span>
+<span class="sql-kw">FROM</span>     table
+<span class="sql-kw">JOIN</span>     other_table <span class="sql-kw">ON</span> condition
+<span class="sql-kw">WHERE</span>    row_filter        <span class="cm">← before grouping</span>
+<span class="sql-kw">GROUP BY</span> columns
+<span class="sql-kw">HAVING</span>   group_filter      <span class="cm">← after grouping</span>
+<span class="sql-kw">ORDER BY</span> column <span class="sql-kw">ASC/DESC</span>
+<span class="sql-kw">LIMIT</span>    n;
+
+<span class="cm">-- Execution order (how DB runs it):</span>
+<span class="cm">-- FROM → JOIN → WHERE → GROUP BY</span>
+<span class="cm">--   → HAVING → SELECT → ORDER BY → LIMIT</span>
+
+<span class="cm">-- DISTINCT</span>
+<span class="sql-kw">SELECT DISTINCT</span> dept_id <span class="sql-kw">FROM</span> employees;
+
+<span class="cm">-- Alias</span>
+<span class="sql-kw">SELECT</span> salary * <span class="num">12</span> <span class="sql-kw">AS</span> annual_sal <span class="sql-kw">FROM</span> employees;</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-header sql">🏆 Common Interview Queries</div>
+      <pre><span class="cm">-- 2nd highest salary</span>
+<span class="sql-kw">SELECT MAX</span>(salary) <span class="sql-kw">FROM</span> employees
+<span class="sql-kw">WHERE</span> salary &lt; (<span class="sql-kw">SELECT MAX</span>(salary) <span class="sql-kw">FROM</span> employees);
+
+<span class="cm">-- Nth highest salary</span>
+<span class="sql-kw">SELECT DISTINCT</span> salary <span class="sql-kw">FROM</span> employees
+<span class="sql-kw">ORDER BY</span> salary <span class="sql-kw">DESC</span> <span class="sql-kw">LIMIT</span> <span class="num">1</span> <span class="sql-kw">OFFSET</span> N-<span class="num">1</span>;
+
+<span class="cm">-- Duplicate rows</span>
+<span class="sql-kw">SELECT</span> email, <span class="sql-fn">COUNT</span>(*) <span class="sql-kw">FROM</span> employees
+<span class="sql-kw">GROUP BY</span> email <span class="sql-kw">HAVING</span> <span class="sql-fn">COUNT</span>(*) > <span class="num">1</span>;
+
+<span class="cm">-- Employees with no department</span>
+<span class="sql-kw">SELECT</span> * <span class="sql-kw">FROM</span> employees <span class="sql-kw">WHERE</span> dept_id <span class="sql-kw">IS NULL</span>;
+
+<span class="cm">-- Dept with most employees</span>
+<span class="sql-kw">SELECT</span> dept_id, <span class="sql-fn">COUNT</span>(*) <span class="sql-kw">AS</span> cnt
+<span class="sql-kw">FROM</span> employees <span class="sql-kw">GROUP BY</span> dept_id
+<span class="sql-kw">ORDER BY</span> cnt <span class="sql-kw">DESC</span> <span class="sql-kw">LIMIT</span> <span class="num">1</span>;</pre>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<script>
+  function show(id, el) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.remove('active-java', 'active-sql');
+    });
+    const sqlSections = ['sql', 'sqlfn'];
+    el.classList.add(sqlSections.includes(id) ? 'active-sql' : 'active-java');
+  }
+
+  // 60-minute countdown
+  let secs = 60 * 60;
+  const timerEl = document.getElementById('timer');
+  const tick = () => {
+    if (secs <= 0) { timerEl.textContent = "GO! 🚀"; return; }
+    const m = String(Math.floor(secs / 60)).padStart(2, '0');
+    const s = String(secs % 60).padStart(2, '0');
+    timerEl.textContent = m + ':' + s;
+    if (secs <= 600) timerEl.style.color = '#f97316';
+    if (secs <= 300) timerEl.style.color = '#ef4444';
+    secs--;
+    setTimeout(tick, 1000);
+  };
+  tick();
+</script>
+</body>
+</html>
